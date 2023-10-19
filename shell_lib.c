@@ -7,9 +7,11 @@
  *
  * Return: int!
  */
-void get_input(char **input, size_t *input_size)
+int get_input(char **input, size_t *input_size)
 {
-	getline(input, input_size, stdin);
+	int status;
+
+	status = getline(input, input_size, stdin);
 	(*input)[strlen(*input) - 1] = '\0';
 
 	return (status);
@@ -60,25 +62,25 @@ void exec_builtin(char **args, char *command)
 		}
 	}
 
-		if (i == num_builtins)
-		{
-			pid_t child_pid = fork();
+	if (i == num_builtins)
+	{
+		pid_t child_pid = fork();
 
-			if (child_pid < 0)
-			{
-				perror("Fork failed");
-			}
-			else if (child_pid == 0)
-			{
-				execvp(args[0], args);
-				perror("Execvp failed");
-				exit(1);
-			}
-			else
-			{
-				waitpid(child_pid, NULL, 0);
-			}
+		if (child_pid < 0)
+		{
+			perror("Fork failed");
 		}
+		else if (child_pid == 0)
+		{
+			execvp(args[0], args);
+			perror("Execvp failed");
+			exit(1);
+		}
+		else
+		{
+			waitpid(child_pid, NULL, 0);
+		}
+	}
 }
 /**
  * free_args - frees args

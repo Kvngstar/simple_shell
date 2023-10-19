@@ -11,6 +11,8 @@ void get_input(char **input, size_t *input_size)
 {
 	getline(input, input_size, stdin);
 	(*input)[strlen(*input) - 1] = '\0';
+
+	return (status);
 }
 
 /**

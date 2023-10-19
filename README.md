@@ -33,7 +33,7 @@ Once the shell is running, you can execute commands as you would in a regular Un
 
 ## Authors
 - [Ihim Arinze](https://github.com/Eznira)
-- [Abotshinah Shallom](https://github.com/Shallomad)
+- [Okoronkwo Kingsley kelechukwu](https://github.com/kvngstar)
 
 ## Contributing
 Contributions are welcome! Feel free to fork the repository and submit pull requests.

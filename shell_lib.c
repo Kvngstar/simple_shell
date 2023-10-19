@@ -5,9 +5,7 @@
  * @input: Pointer to store the input string
  * @input_size: Pointer to the size of the input string
  *
- * This function reads a line of input from stdin and removes the trailing
- * newline character. It uses getline to dynamically allocate memory for the
- * input string.
+ * Return: int!
  */
 void get_input(char **input, size_t *input_size)
 {

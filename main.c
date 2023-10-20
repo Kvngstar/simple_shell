@@ -1,58 +1,105 @@
-#include "shell.h"
+#include"main.h"
 /**
- * non_interactive - Runs the shell in non interactive mode
+ * main - Entry point for a simple command-line interpreter.
  *
- * @argv: The argument vector passed to main.
- * @command: The command string to be executed.
- * @args: The list of arguements.
- */
-void non_interactive(char *argv[], char **command, char **args)
-{
-	int i;
-
-	*command = argv[1];
-
-	for (i = 1; argv[i] != NULL; i++)
-		args[i - 1] = argv[i];
-
-	args[i - 1] = NULL;
-	exec_builtin(args, *command);
-}
-
-/**
- * main - Entry point of the shell program.
- * @argc: djdkd
- * @argv: dhdj
+ * @argc: The number of command-line arguments.
+ * @argv: An array of strings containing the arguments.
  *
- * Return: Always 0
+ * Return: 0 on success, or an error code if something goes wrong.
  */
-int main(int argc, char *argv[])
-{
-	size_t input_size = 0;
-	char *input = NULL, *args[MAX_INPUT_SIZE], *command = NULL;
+int main(int argc, char **argv) {
+    char **storeInputs;
+    int arguCount;
+  int checkpipe = 0;
+  if (isatty(fileno(stdin))) {
+     checkpipe++;
+      
+  }
 
-	if (argc < 2)
-	{
-		while (1)
-		{
-			printf("$ ");
+    if (argc < 2) {
+        while (1) {
+            char *inputText = getLineInput(NULL);
+  
+            if (inputText != NULL) {
+                // Tokenize the input
+                Tokenize(inputText, &storeInputs, &arguCount);
 
-			if (get_input(&input, &input_size) == EOF)
-			{
-				printf(" %s \n", input);
-				break;
-			}
+                // Check if the command exists
+                int exists = CheckIfCommandExists(storeInputs[0], storeInputs, arguCount);
 
-			if (strlen(input) == 0 || isspace(*input))
-				continue;
+                if (exists == -1) {
+                    perror(storeInputs[0]);
+                }
 
-			tokenize_input(input, &command, args);
-			exec_builtin(args, command);
-		}
-		free(input);
-	}
-	else
-		non_interactive(argv, &command, args);
+                // Clean up allocated memory
+                int freespace = 0;
+                while (freespace < arguCount) {
+                    free(storeInputs[freespace]);
+                    freespace++;
+                }
+                free(storeInputs);
+                free(inputText);
+              if(checkpipe == 0){
+                exit(0);
+              }
+            }
+            else {
+                continue;
+            }
+        }
+    } else if (argc > 1) {
+      
+        int a = 1;
+        int b = 0;
+        int counter = 0;
+        char *text;
 
-	return (0);
+        while (a < argc) {
+            counter = counter + strlen(*(argv + a));
+            counter++;
+            a++;
+        }
+
+        a = 1;
+        text = malloc(sizeof(char) * (counter + 1));
+        int i = 0;
+        while (a < argc) {
+            char *changetext = *(argv + a);
+
+            while (b < strlen(changetext)) {
+                text[i] = *(changetext + b);
+                i++;
+                b++;
+            }
+            a++;
+            if (a == argc) {
+                text[i] = '\0';
+                break;
+            }
+
+            b = 0;
+            text[i] = ' ';
+            i++;
+        }
+     
+        Tokenize(text, &storeInputs, &arguCount);
+
+        int exists = CheckIfCommandExists(storeInputs[0], storeInputs, arguCount);
+
+        if (exists == -1) {
+            perror(storeInputs[0]);
+        }
+
+      
+        int freespace = 0;
+        while (freespace < arguCount) {
+            free(storeInputs[freespace]);
+            freespace++;
+        }
+        free(storeInputs);
+
+  
+    }
+
+    return 0;
 }

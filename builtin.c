@@ -1,105 +1,130 @@
-/* Contains all built-in functions */
-#include "shell.h"
+#include "main.h"
 
 /**
- * builtin_cd - Change the current directory.
- * @args: Array of command arguments.
+ * cd - Change the current working directory.
+ * @path: An array of strings where the first element is the directory path to change to.
+ * @c: The number of elements in the path array.
  */
-void builtin_cd(char **args)
+void cd(char **path, int c)
 {
-	if (args[1] == NULL)
-	{
-		fprintf(stderr, "cd: missing argument\n");
-		return;
-	}
-
-	if (chdir(args[1]) != 0)
-	{
-		perror("cd");
-	}
+    if (chdir(path[1]) == 0)
+    {
+        printf("Changed directory to %s\n", path[1]);
+    }
+    else
+    {
+        perror("chdir");
+    }
 }
 
 /**
- * builtin_env - Display the current environment variables.
- * @args: Array of command arguments.
+ * pwd - Print the current working directory.
+ * @text: Unused.
+ * @c: Unused.
  */
-void builtin_env(char __attribute__((unused)) **args)
+void pwd(char **text, int c)
 {
-	int i;
+    char *buf;
+    size_t size;
 
-	for (i = 0; environ[i] != NULL; i++)
-	{
-		printf("%s\n", environ[i]);
-	}
+    size = pathconf(".", _PC_PATH_MAX);
+    if ((buf = (char *)malloc((size_t)size)) != NULL)
+    {
+        if (getcwd(buf, (size_t)size) != NULL)
+        {
+            printf("%s\n", buf);
+        }
+        else
+        {
+            perror("getcwd");
+        }
+        free(buf);
+    }
+    else
+    {
+        perror("malloc");
+    }
 }
 
 /**
- * builtin_exit - Exit the shell.
- * @args: Array of arguments passed to the exit command.
+ * echo - Print text to the standard output.
+ * @text: An array of strings where the first element may contain arguments.
+ * @c: The number of elements in the text array.
+ */
+void echo(char **text, int c)
+{
+    int count = 0;
+    int i = 0;
+
+    if (*(text[1]) == '-')
+    {
+        while (*(text[1] + i) != '\0')
+        {
+            i++;
+        }
+        count = 2;
+        while (count < c)
+        {
+            if (count == (c - 1))
+            {
+                printf("%s  ", text[count]);
+                break;
+            }
+            else
+            {
+                printf("%s ", text[count]);
+            }
+            count++;
+        }
+    }
+    else
+    {
+        count = 1;
+        while (count < c)
+        {
+            if (count == (c - 1))
+            {
+                printf("%s", text[count]);
+                break;
+            }
+            else
+            {
+                printf("%s ", text[count]);
+            }
+            count++;
+        }
+    }
+}
+
+/**
+ * clear - Clear the terminal screen.
+ * @text: Unused.
+ * @c: Unused.
+ */
+void clear(char **text, int c)
+{
+    printf("\033[H\033[J");
+}
+
+struct create_builtIn functionArray[4] = {
+    {"cd", cd}, {"echo", echo}, {"pwd", pwd}, {"clear", clear}};
+
+/**
+ * checkforBuiltIn - Check if a command is a built-in function and execute it.
+ * @text: An array of strings representing the command and its arguments.
+ * @argcount: The number of elements in the text array.
  *
- * If no argument is provided, the shell will exit with status 0.
- * If an integer argument is provided, the shell will exit with that status.
- * If the provided arg is not a valid int, an error message will be printed.
+ * Return: int if the command is a built-in function and was executed successfully, -1 if not found.
  */
-void builtin_exit(char **args)
+int checkforBuiltIn(char **text, int argcount)
 {
-	if (args[1] != NULL)
-	{
-		char *endptr;
-		int exit_status = (int) strtol(args[1], &endptr, 10);
-
-		if (*endptr != '\0')
-		{
-			fprintf(stderr, "exit: Invalid argument: %s\n", args[1]);
-			return;
-		}
-
-		exit(exit_status);
-	}
-	else
-	{
-		exit(0);
-	}
-}
-
-/**
- * builtin_setenv - Initialize a new environment var or modify an existing one.
- * @args: Array of arguments passed to the setenv command.
- *
- * Command syntax: setenv VARIABLE VALUE
- * Prints an error message on stderr on failure.
- */
-void builtin_setenv(char **args)
-{
-	if (args[1] == NULL || args[2] == NULL)
-	{
-		perror("setenv: Missing arguments\n");
-		return;
-	}
-
-	if (setenv(args[1], args[2], 1) != 0)
-	{
-		perror("setenv");
-	}
-}
-
-/**
- * builtin_unsetenv - Remove an environment variable.
- * @args: Array of arguments passed to the unsetenv command.
- *
- * Command syntax: unsetenv VARIABLE
- * Prints an error message on stderr on failure.
- */
-void builtin_unsetenv(char **args)
-{
-	if (args[1] == NULL)
-	{
-		perror("unsetenv: Missing argument\n");
-		return;
-	}
-
-	if (unsetenv(args[1]) != 0)
-	{
-		perror("unsetenv");
-	}
+    for (int i = 0; i < 4; i++)
+    {
+        if (_strcmp(text[0], functionArray[i].name) == 0)
+        {
+            functionArray[i].functionName(text, argcount);
+            return 0;
+        }
+    }
+    return -1;
 }
